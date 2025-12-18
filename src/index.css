@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Leaflet import movido para main.jsx */
+
+body {
+  background-color: var(--color-bg, #f1f5f9);
+  color: var(--color-text, #1e293b);
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+}
+
+/* Scrollbar Custom */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+/* Recharts Fix */
+.recharts-responsive-container {
+  min-height: 200px;
+  min-width: 100px;
+}
