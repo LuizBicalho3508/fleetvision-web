@@ -6,48 +6,41 @@ const ConfigContext = createContext();
 export function ConfigProvider({ children }) {
   const [config, setConfig] = useState({
     appName: 'FleetVision',
+    logo: '',
     primaryColor: '#3b82f6',
-    sidebarBg: '#1e293b',
-    theme: { mode: 'light' }
+    sidebarBg: '#1e293b'
   });
 
   useEffect(() => {
-    // 1. Carrega tema salvo
-    const localTheme = localStorage.getItem('themeMode');
-    if (localTheme) {
-      if(localTheme === 'dark') document.documentElement.classList.add('dark');
-      else document.documentElement.classList.remove('dark');
-      setConfig(prev => ({ ...prev, theme: { mode: localTheme } }));
-    }
-
-    // 2. Carrega do servidor
     getStorage('config').then(res => {
       if (res && res.system) {
-        setConfig(prev => ({ 
-          ...prev, 
-          ...res.system,
-          // Mantém preferência local de tema se existir, senão usa do servidor
-          theme: { mode: localTheme || res.system.theme?.mode || 'light' } 
-        }));
+        setConfig(prev => ({ ...prev, ...res.system }));
+        // Aplicar Favicon Dinâmico
+        if (res.system.logo) {
+          const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+          link.type = 'image/x-icon';
+          link.rel = 'shortcut icon';
+          const logoUrl = res.system.logo.startsWith('http') || res.system.logo.startsWith('/') 
+            ? res.system.logo 
+            : `/storage/uploads/${res.system.logo}`;
+          link.href = logoUrl;
+          document.getElementsByTagName('head')[0].appendChild(link);
+        }
+        // Aplicar Título
+        if (res.system.appName) {
+          document.title = res.system.appName;
+        }
       }
-    }).catch(() => {});
+    }).catch(err => console.error("Erro config load:", err));
   }, []);
 
-  const updateConfig = (newConfig) => {
-    setConfig(newConfig);
-    // Salva tema localmente
-    if (newConfig.theme?.mode) {
-      localStorage.setItem('themeMode', newConfig.theme.mode);
-      if (newConfig.theme.mode === 'dark') document.documentElement.classList.add('dark');
-      else document.documentElement.classList.remove('dark');
-    }
-  };
-
   return (
-    <ConfigContext.Provider value={{ config, setConfig: updateConfig }}>
+    <ConfigContext.Provider value={{ config, setConfig }}>
       {children}
     </ConfigContext.Provider>
   );
 }
 
-export const useConfig = () => useContext(ConfigContext);
+export function useConfig() {
+  return useContext(ConfigContext);
+}
